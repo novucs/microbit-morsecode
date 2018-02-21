@@ -54,6 +54,30 @@ void on_lo(MicroBitEvent event) {
     }
 }
 
+std::vector<char> read_all(int length) {
+    vector<char> target;
+
+    while (true) {
+        while (bytes.size() > 0 && length > 0) {
+            const char byte = bytes.front();
+            bytes.pop();
+            target.push_back(byte);
+            length -= 1;
+        }
+
+        if (length <= 0) {
+            return target;
+        }
+
+        uBit.sleep(TICK_RATE);
+    }
+}
+
+short read_short() {
+    auto bytes = read_all(2);
+    return (bytes[0] << 4) + bytes[1];
+}
+
 void read() {
     uBit.io.P2.setDigitalValue(1);
     uBit.sleep(500);
@@ -64,11 +88,9 @@ void read() {
     uBit.messageBus.listen(MICROBIT_ID_IO_P2, MICROBIT_PIN_EVT_PULSE_LO, on_lo);
 
     while (true) {
-        while (bytes.size() > 0) {
-            const char byte = bytes.front();
-            bytes.pop();
-            uBit.display.print(byte);
-        }
+        short packet_length = read_short();
+        std::vector<char> payload = read_all(packet_length);
+        uBit.display.scroll(ManagedString(payload.data(), (uint16_t)payload.size()));
         uBit.sleep(TICK_RATE);
     }
 }
@@ -89,7 +111,13 @@ void write_byte(char byte) {
     write_bit(byte & 0x01);
 }
 
+void write_short(short value) {
+    write_byte((char)(value >> 8));
+    write_byte((char)(value & 0xFF));
+}
+
 void write_string(const std::string &message) {
+    write_short((short)message.size());
     for (char character : message) {
         write_byte(character);
     }
@@ -106,14 +134,14 @@ void write() {
     uBit.sleep(TICK_RATE);
 
     while (true) {
-        write_string("hello friend. :) ");
+        write_string("hello friend. :)");
     }
 }
 
 int main() {
     uBit.init();
-    read();
-//    write();
+//    read();
+    write();
     return EXIT_SUCCESS;
 }
 
