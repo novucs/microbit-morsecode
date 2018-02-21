@@ -7,15 +7,16 @@
 
 #define TICK_RATE 75
 
-MicroBit uBit;
-std::queue<bool> bits;
-
 enum State {
     FIRST,
     PIPE
 };
 
 State state = FIRST;
+MicroBit uBit;
+std::queue<char> bytes;
+char bits = 0;
+int bits_size = 0;
 
 void on_hi(MicroBitEvent event) {
     if (state == FIRST) {
@@ -26,7 +27,15 @@ void on_hi(MicroBitEvent event) {
     uint64_t ticks = (event.timestamp / 1000) / TICK_RATE;
 
     for (int i = 0; i < ticks; i++) {
-        bits.push(true);
+        bits <<= 1;
+        bits += 1;
+        bits_size += 1;
+
+        if (bits_size == 8) {
+            bytes.push(bits);
+            bits = 0;
+            bits_size = 0;
+        }
     }
 }
 
@@ -34,7 +43,14 @@ void on_lo(MicroBitEvent event) {
     uint64_t ticks = (event.timestamp / 1000) / TICK_RATE;
 
     for (int i = 0; i < ticks; i++) {
-        bits.push(false);
+        bits <<= 1;
+        bits_size += 1;
+
+        if (bits_size == 8) {
+            bytes.push(bits);
+            bits = 0;
+            bits_size = 0;
+        }
     }
 }
 
@@ -48,14 +64,9 @@ void read() {
     uBit.messageBus.listen(MICROBIT_ID_IO_P2, MICROBIT_PIN_EVT_PULSE_LO, on_lo);
 
     while (true) {
-        while (bits.size() > 8) {
-            char byte = 0;
-            for (int i = 0; i < 8; i++) {
-                const bool bit = bits.front();
-                bits.pop();
-                byte <<= 1;
-                byte += bit;
-            }
+        while (bytes.size() > 0) {
+            const char byte = bytes.front();
+            bytes.pop();
             uBit.display.print(byte);
         }
         uBit.sleep(TICK_RATE);
