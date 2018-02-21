@@ -9,6 +9,7 @@
 
 enum State {
     RESET,
+    RESET1,
     FIRST,
     READ_LENGTH,
     READ_PAYLOAD
@@ -21,6 +22,7 @@ char bits = 0;
 int bits_size = 0;
 int packet_size = 0;
 int read_size = 0;
+int ignore_bits = 0;
 
 std::vector<char> read_all(int length);
 
@@ -55,6 +57,7 @@ void on_byte_received(char byte) {
             }
 
             if (read_size == packet_size) {
+                ignore_bits = 3;
                 read_size = 0;
                 state = READ_LENGTH;
             }
@@ -72,6 +75,11 @@ void on_hi(MicroBitEvent event) {
     uint64_t ticks = (event.timestamp / 1000) / TICK_RATE;
 
     for (int i = 0; i < ticks; i++) {
+        if (ignore_bits > 0) {
+            ignore_bits--;
+            continue;
+        }
+
         bits <<= 1;
         bits += 1;
         bits_size += 1;
@@ -90,6 +98,12 @@ void on_lo(MicroBitEvent event) {
     uint64_t ticks = (event.timestamp / 1000) / TICK_RATE;
 
     for (int i = 0; i < ticks; i++) {
+        if (ignore_bits > 0) {
+            ignore_bits = 0;
+            state = FIRST;
+            return;
+        }
+
         bits <<= 1;
         bits_size += 1;
 
@@ -179,11 +193,15 @@ void write() {
 
     while (true) {
 //        write_string("hello friend. :)");
+
+        write_bit(true);
         write_short(2);
         write_byte(104);
         write_byte(105);
-//        write_bit(true);
-//        write_bit(false);
+        write_bit(true);
+        write_bit(false);
+
+        uBit.sleep(500);
     }
 }
 
