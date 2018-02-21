@@ -5,7 +5,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-noreturn"
 
-#define TICK_RATE 500
+#define TICK_RATE 75
 
 MicroBit uBit;
 std::queue<bool> bits;
@@ -57,9 +57,8 @@ void read() {
                 byte += bit;
             }
             uBit.display.print(byte);
-            uBit.sleep(500);
         }
-        uBit.sleep(500);
+        uBit.sleep(TICK_RATE);
     }
 }
 
@@ -79,6 +78,12 @@ void write_byte(char byte) {
     write_bit(byte & 0x01);
 }
 
+void write_string(const std::string &message) {
+    for (char character : message) {
+        write_byte(character);
+    }
+}
+
 void write() {
     uBit.display.print("a");
     while (uBit.io.P1.getDigitalValue() == 0) {}
@@ -90,17 +95,7 @@ void write() {
     uBit.sleep(TICK_RATE);
 
     while (true) {
-        write_byte('h');
-        write_byte('e');
-        write_byte('l');
-        write_byte('l');
-        write_byte('o');
-        write_byte('f');
-        write_byte('r');
-        write_byte('i');
-        write_byte('e');
-        write_byte('n');
-        write_byte('d');
+        write_string("hello friend. :) ");
     }
 }
 
