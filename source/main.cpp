@@ -8,8 +8,6 @@
 #define TICK_RATE 75
 
 enum State {
-    RESET,
-    RESET1,
     FIRST,
     READ_LENGTH,
     READ_PAYLOAD
@@ -35,32 +33,24 @@ void on_byte_received(char byte) {
     switch (state) {
         case READ_LENGTH: {
             read_size += 1;
-
             if (read_size == 2) {
                 read_size = 0;
                 packet_size = (last_byte << 4) + byte;
-                uBit.display.print(packet_size);
                 state = READ_PAYLOAD;
             }
-
             last_byte = byte;
             break;
         }
         case READ_PAYLOAD: {
             read_size += 1;
-            if (byte == 104) {
-                uBit.display.print("A");
-            }
-
-            if (byte == 105) {
-                uBit.display.print("B");
-            }
-
             if (read_size == packet_size) {
                 ignore_bits = 3;
                 read_size = 0;
                 state = READ_LENGTH;
             }
+            break;
+        }
+        default: {
             break;
         }
     }
@@ -137,19 +127,23 @@ short read_short() {
     return (bytes[0] << 4) + bytes[1];
 }
 
+void on_receive_packet(std::vector<char> packet) {
+    uBit.display.scroll(ManagedString(packet.data(), (uint16_t)packet.size()));
+}
+
 void read() {
     uBit.io.P2.setDigitalValue(1);
     uBit.sleep(500);
-    uBit.io.P1.setDigitalValue(0);
+    uBit.io.P2.setDigitalValue(0);
 
     uBit.io.P2.eventOn(MICROBIT_PIN_EVENT_ON_PULSE);
     uBit.messageBus.listen(MICROBIT_ID_IO_P2, MICROBIT_PIN_EVT_PULSE_HI, on_hi);
     uBit.messageBus.listen(MICROBIT_ID_IO_P2, MICROBIT_PIN_EVT_PULSE_LO, on_lo);
 
     while (true) {
-//        short packet_length = read_short();
-//        std::vector<char> payload = read_all(packet_length);
-//        uBit.display.scroll(ManagedString(payload.data(), (uint16_t)payload.size()));
+        short packet_length = read_short();
+        std::vector<char> payload = read_all(packet_length);
+        on_receive_packet(payload);
         uBit.sleep(TICK_RATE);
     }
 }
@@ -175,13 +169,6 @@ void write_short(short value) {
     write_byte((char) (value & 0xFF));
 }
 
-void write_string(const std::string &message) {
-    write_short((short) message.size());
-    for (char character : message) {
-        write_byte(character);
-    }
-}
-
 void write() {
     uBit.display.print("a");
     while (uBit.io.P1.getDigitalValue() == 0) {}
@@ -192,23 +179,20 @@ void write() {
     write_bit(true);
 
     while (true) {
-//        write_string("hello friend. :)");
-
         write_bit(true);
         write_short(2);
         write_byte(104);
         write_byte(105);
         write_bit(true);
         write_bit(false);
-
         uBit.sleep(500);
     }
 }
 
 int main() {
     uBit.init();
-    read();
-//    write();
+//    read();
+    write();
     return EXIT_SUCCESS;
 }
 
