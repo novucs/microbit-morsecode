@@ -10,8 +10,21 @@
 MicroBit uBit;
 std::queue<bool> bits;
 
+enum State {
+    FIRST,
+    PIPE
+};
+
+State state = FIRST;
+
 void on_hi(MicroBitEvent event) {
+    if (state == FIRST) {
+        state = PIPE;
+        return;
+    }
+
     uint64_t ticks = (event.timestamp / 1000) / TICK_RATE;
+
     for (int i = 0; i < ticks; i++) {
         bits.push(true);
     }
@@ -19,6 +32,7 @@ void on_hi(MicroBitEvent event) {
 
 void on_lo(MicroBitEvent event) {
     uint64_t ticks = (event.timestamp / 1000) / TICK_RATE;
+
     for (int i = 0; i < ticks; i++) {
         bits.push(false);
     }
@@ -42,8 +56,7 @@ void read() {
                 byte <<= 1;
                 byte += bit;
             }
-            byte = static_cast<char>(((byte * 0x80200802ULL) & 0x0884422110ULL) * 0x0101010101ULL >> 32);
-            uBit.display.scroll((int)byte);
+            uBit.display.print(byte);
             uBit.sleep(500);
         }
         uBit.sleep(500);
@@ -51,15 +64,11 @@ void read() {
 }
 
 void write_bit(int bit) {
-    if (bit) {
-        uBit.io.P1.setDigitalValue(1);
-    } else {
-        uBit.io.P1.setDigitalValue(0);
-    }
+    uBit.io.P1.setDigitalValue(bit > 0);
     uBit.sleep(TICK_RATE);
 }
 
-void write_byte(int byte) {
+void write_byte(char byte) {
     write_bit(byte & 0x80);
     write_bit(byte & 0x40);
     write_bit(byte & 0x20);
@@ -77,16 +86,28 @@ void write() {
 
     uBit.sleep(500);
     uBit.display.print("b");
+    uBit.io.P1.setDigitalValue(1);
+    uBit.sleep(TICK_RATE);
 
     while (true) {
-        write_byte(27);
+        write_byte('h');
+        write_byte('e');
+        write_byte('l');
+        write_byte('l');
+        write_byte('o');
+        write_byte('f');
+        write_byte('r');
+        write_byte('i');
+        write_byte('e');
+        write_byte('n');
+        write_byte('d');
     }
 }
 
 int main() {
     uBit.init();
-//    read();
-    write();
+    read();
+//    write();
     return EXIT_SUCCESS;
 }
 
