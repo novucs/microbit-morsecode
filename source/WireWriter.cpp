@@ -2,10 +2,10 @@
 #include "WireWriter.h"
 #include "WireConfig.h"
 
-WireWriter::WireWriter(MicroBit *microBit) : microBit(microBit) {}
+WireWriter::WireWriter(MicroBit *microBit, MicroBitPin *pin) : microBit(microBit), pin(pin) {}
 
 void WireWriter::writeBit(int bit) {
-    microBit->io.P1.setDigitalValue(bit > 0);
+    pin->setDigitalValue(bit > 0);
     microBit->sleep(TICK_RATE);
 }
 
@@ -26,9 +26,12 @@ void WireWriter::writeShort(short value) {
 }
 
 void WireWriter::wait() {
-    while (microBit->io.P1.getDigitalValue() == 0) {}
-    while (microBit->io.P1.getDigitalValue() == 1) {}
-    microBit->sleep(500);
+    while (pin->getDigitalValue() == 0) {
+        microBit->sleep(TICK_RATE);
+    }
+    while (pin->getDigitalValue() == 1) {
+        microBit->sleep(TICK_RATE);
+    }
 }
 
 void WireWriter::write(std::vector<char> packet) {
@@ -47,6 +50,12 @@ void WireWriter::write(std::string packet) {
     for (char byte : packet) {
         writeByte(byte);
     }
+    writeBit(true);
+    writeBit(false);
+}
+
+void WireWriter::ping() {
+    writeBit(false);
     writeBit(true);
     writeBit(false);
 }

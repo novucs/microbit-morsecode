@@ -1,7 +1,7 @@
 #include "WireReader.h"
 #include "WireConfig.h"
 
-WireReader::WireReader(MicroBit *microBit) : microBit(microBit) {}
+WireReader::WireReader(MicroBit *microBit, MicroBitPin *pin) : microBit(microBit), pin(pin) {}
 
 void WireReader::onByte(char byte) {
     bits = 0;
@@ -107,11 +107,11 @@ short WireReader::readShort() {
 }
 
 void WireReader::listen(void (*handler)(std::vector<char>)) {
-    microBit->io.P2.setDigitalValue(1);
+    pin->setDigitalValue(1);
     microBit->sleep(500);
-    microBit->io.P2.setDigitalValue(0);
+    pin->setDigitalValue(0);
 
-    microBit->io.P2.eventOn(MICROBIT_PIN_EVENT_ON_PULSE);
+    pin->eventOn(MICROBIT_PIN_EVENT_ON_PULSE);
     microBit->messageBus.listen(MICROBIT_ID_IO_P2, MICROBIT_PIN_EVT_PULSE_HI, this, &WireReader::onHi,
                                 MESSAGE_BUS_LISTENER_IMMEDIATE);
     microBit->messageBus.listen(MICROBIT_ID_IO_P2, MICROBIT_PIN_EVT_PULSE_LO, this, &WireReader::onLo,

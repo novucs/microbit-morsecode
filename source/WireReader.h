@@ -12,9 +12,10 @@ enum ReadState {
 
 class WireReader {
 private:
+    MicroBit *microBit;
+    MicroBitPin *pin;
     ReadState state = FIRST;
     std::queue<char> bytes;
-    MicroBit *microBit;
     bool listening = false;
     char bits = 0;
     int bitsLength = 0;
@@ -33,7 +34,7 @@ private:
     void onByte(char byte);
 
 public:
-    explicit WireReader(MicroBit *microBit);
+    explicit WireReader(MicroBit *microBit, MicroBitPin *pin);
 
     void listen(void (*handler)(std::vector<char>));
 
