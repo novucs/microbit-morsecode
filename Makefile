@@ -5,7 +5,11 @@ MICROBIT_PATH = /run/media/billy/MICROBIT
 #MICROBIT_PATH = /media/student/MICROBIT
 
 SOURCE_FILES += \
-    source/main.cpp
+    source/main.cpp \
+    source/WireReader.cpp \
+    source/WireReader.h \
+    source/WireWriter.cpp \
+    source/WireWriter.h
 
 OUTPUT_FILE = build/bbc-microbit-classic-gcc/source/microbit-platformer-combined.hex
 
