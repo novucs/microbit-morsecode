@@ -3,12 +3,12 @@
 
 WireReader::WireReader(MicroBit *microBit, MicroBitPin *pin) : microBit(microBit), pin(pin) {}
 
-void WireReader::onByte(char byte) {
+void WireReader::onByte(uint8_t byte) {
     bits = 0;
     bitsLength = 0;
     bytes.push(byte);
 
-    static char last_byte = 0;
+    static uint8_t last_byte = 0;
     switch (state) {
         case READ_LENGTH: {
             readLength += 1;
@@ -82,12 +82,12 @@ void WireReader::onLo(MicroBitEvent event) {
     }
 }
 
-std::vector<char> WireReader::readAll(int length) {
-    std::vector<char> target;
+std::vector<uint8_t> WireReader::readAll(int length) {
+    std::vector<uint8_t> target;
 
     while (true) {
         while (bytes.size() > 0 && length > 0) {
-            const char byte = bytes.front();
+            const uint8_t byte = bytes.front();
             bytes.pop();
             target.push_back(byte);
             length -= 1;
@@ -106,7 +106,7 @@ short WireReader::readShort() {
     return (bytes[0] << 4) + bytes[1];
 }
 
-void WireReader::listen(void (*handler)(std::vector<char>)) {
+void WireReader::listen(void (*handler)(std::vector<uint8_t>)) {
     pin->setDigitalValue(1);
     microBit->sleep(500);
     pin->setDigitalValue(0);
@@ -121,7 +121,7 @@ void WireReader::listen(void (*handler)(std::vector<char>)) {
 
     while (listening) {
         short packet_length = readShort();
-        std::vector<char> payload = readAll(packet_length);
+        std::vector<uint8_t> payload = readAll(packet_length);
         handler(payload);
         microBit->sleep(TICK_RATE);
     }

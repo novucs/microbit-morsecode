@@ -12,16 +12,14 @@ private:
 
     void writeBit(int bit);
 
-    void writeByte(char byte);
+    void writeByte(uint8_t byte);
 
     void writeShort(short value);
 
 public:
     explicit WireWriter(MicroBit *microBit, MicroBitPin *pin);
 
-    void write(std::vector<char> packet);
-
-    void write(std::string packet);
+    void write(std::vector<uint8_t> packet);
 
     void wait();
 

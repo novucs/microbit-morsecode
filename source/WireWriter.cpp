@@ -9,7 +9,7 @@ void WireWriter::writeBit(int bit) {
     microBit->sleep(TICK_RATE);
 }
 
-void WireWriter::writeByte(char byte) {
+void WireWriter::writeByte(uint8_t byte) {
     writeBit(byte & 0x80);
     writeBit(byte & 0x40);
     writeBit(byte & 0x20);
@@ -21,8 +21,8 @@ void WireWriter::writeByte(char byte) {
 }
 
 void WireWriter::writeShort(short value) {
-    writeByte((char) (value >> 8));
-    writeByte((char) (value & 0xFF));
+    writeByte((uint8_t) (value >> 8));
+    writeByte((uint8_t) (value & 0xFF));
 }
 
 void WireWriter::wait() {
@@ -34,20 +34,10 @@ void WireWriter::wait() {
     }
 }
 
-void WireWriter::write(std::vector<char> packet) {
+void WireWriter::write(std::vector<uint8_t> packet) {
     writeBit(true);
     writeShort((short) packet.size());
-    for (char byte : packet) {
-        writeByte(byte);
-    }
-    writeBit(true);
-    writeBit(false);
-}
-
-void WireWriter::write(std::string packet) {
-    writeBit(true);
-    writeShort((short) packet.size());
-    for (char byte : packet) {
+    for (uint8_t byte : packet) {
         writeByte(byte);
     }
     writeBit(true);

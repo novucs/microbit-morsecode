@@ -15,15 +15,15 @@ private:
     MicroBit *microBit;
     MicroBitPin *pin;
     ReadState state = FIRST;
-    std::queue<char> bytes;
+    std::queue<uint8_t> bytes;
     bool listening = false;
-    char bits = 0;
+    uint8_t bits = 0;
     int bitsLength = 0;
     int packetLength = 0;
     int readLength = 0;
     int ignoreBits = 0;
 
-    vector<char> readAll(int length);
+    vector<uint8_t> readAll(int length);
 
     short readShort();
 
@@ -31,12 +31,12 @@ private:
 
     void onHi(MicroBitEvent event);
 
-    void onByte(char byte);
+    void onByte(uint8_t byte);
 
 public:
     explicit WireReader(MicroBit *microBit, MicroBitPin *pin);
 
-    void listen(void (*handler)(std::vector<char>));
+    void listen(void (*handler)(std::vector<uint8_t>));
 
 };
 
