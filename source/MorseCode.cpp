@@ -51,7 +51,7 @@ namespace morse_code {
         }
     }
 
-    uint8_t MorseCode::decode() {
+    uint8_t MorseCode::translate() {
         auto iterator = MORSE_TO_CHARACTER.find(buffer);
         if (iterator == MORSE_TO_CHARACTER.end()) {
             return ' ';
@@ -62,7 +62,7 @@ namespace morse_code {
     void MorseCode::addBuffer() {
         if (buttonTimer.read_ms() <= MAX_DASH_DURATION_MS || !clicked) return;
 
-        uint8_t character = decode();
+        uint8_t character = translate();
         buffer.clear();
 
         if (character != ' ') {
@@ -91,17 +91,27 @@ namespace morse_code {
     }
 
     void MorseCode::onButtonBClick(MicroBitEvent) {
+        // Add the last input character to the buffer, if possible.
         addBuffer();
+
+        // Encrypt and send the message.
         writing = true;
         writer->write(cipher->encrypt(message));
         writing = false;
+
+        // Print the message to screen.
         ManagedString msg((char *) message.data(), (uint16_t) message.size());
         microBit->display.scroll(msg);
+
+        // Clear the message.
         message.clear();
     }
 
     void MorseCode::onPacket(std::vector<uint8_t> encrypted) {
+        // Decrypt the message.
         std::vector<uint8_t> packet = cipher->decrypt(encrypted);
+
+        // Print the message to screen.
         ManagedString message((char *) packet.data(), (uint16_t) packet.size());
         microBit->display.scroll(message);
     }
