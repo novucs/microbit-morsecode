@@ -1,26 +1,30 @@
 #ifndef MORSECODE_WIREWRITER_H
 #define MORSECODE_WIREWRITER_H
 
+#include <vector>
 #include <string>
 #include <MicroBit.h>
 
-class WireWriter {
-private:
-    MicroBit *microBit;
+namespace morse_code {
 
-    MicroBitPin *pin;
+    class WireWriter {
+    private:
+        MicroBit *microBit;
 
-    void writeBit(int bit);
+        MicroBitPin *pin;
 
-    void writeByte(uint8_t byte);
+        void writeBit(int bit);
 
-    void writeShort(short value);
+        void writeByte(uint8_t byte);
 
-public:
-    explicit WireWriter(MicroBit *microBit, MicroBitPin *pin);
+        void writeShort(short value);
 
-    void write(std::vector<uint8_t> packet);
+    public:
+        explicit WireWriter(MicroBit *microBit);
 
-};
+        void write(std::vector<uint8_t> packet);
+
+    };
+}
 
 #endif // MORSECODE_WIREWRITER_H

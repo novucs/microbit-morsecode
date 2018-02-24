@@ -1,7 +1,7 @@
 {
-  "name": "microbit-platformer",
-  "version": "1.0.0-SNAPSHOT",
-  "description": "A small platformer game written for the micro:bit",
+  "name": "microbit-morsecode",
+  "version": "1.0.0",
+  "description": "An encrypted morse code implementation for the micro:bit",
   "license": "MIT",
   "dependencies": {
     "microbit": "lancaster-university/microbit"

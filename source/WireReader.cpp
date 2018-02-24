@@ -1,125 +1,112 @@
 #include "WireReader.h"
-#include "WireConfig.h"
 
-WireReader::WireReader(MicroBit *microBit, MicroBitPin *pin) : microBit(microBit), pin(pin) {}
+namespace morse_code {
 
-void WireReader::onByte(uint8_t byte) {
-    bits = 0;
-    bitsLength = 0;
-    bytes.push(byte);
+    WireReader::WireReader(MicroBit *microBit) : microBit(microBit) {
+        WireReader::pin = &microBit->io.P2;
+        WireReader::pinId = MICROBIT_ID_IO_P2;
+    }
 
-    static uint8_t last_byte = 0;
-    switch (state) {
-        case READ_LENGTH: {
-            readLength += 1;
-            if (readLength == 2) {
-                readLength = 0;
-                packetLength = (last_byte << 4) + byte;
-                state = READ_PAYLOAD;
+    void WireReader::onByte(uint8_t byte) {
+        bits = 0;
+        bitsLength = 0;
+        bytes.push(byte);
+
+        static uint8_t last_byte = 0;
+        switch (state) {
+            case READ_LENGTH: {
+                readLength += 1;
+                if (readLength == 2) {
+                    readLength = 0;
+                    packetLength = (last_byte << 4) + byte;
+                    state = READ_PAYLOAD;
+                }
+                last_byte = byte;
+                break;
             }
-            last_byte = byte;
-            break;
-        }
-        case READ_PAYLOAD: {
-            readLength += 1;
-            if (readLength == packetLength) {
-                ignoreBits = 3;
-                readLength = 0;
-                state = READ_LENGTH;
+            case READ_PAYLOAD: {
+                readLength += 1;
+                if (readLength == packetLength) {
+                    ignoreBits = 3;
+                    readLength = 0;
+                    state = READ_LENGTH;
+                }
+                break;
             }
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-}
-
-void WireReader::onHi(MicroBitEvent event) {
-    if (state == FIRST) {
-        state = READ_LENGTH;
-        return;
-    }
-
-    uint64_t ticks = (event.timestamp / 1000) / TICK_RATE;
-
-    for (uint64_t i = 0; i < ticks; i++) {
-        if (ignoreBits > 0) {
-            ignoreBits--;
-            continue;
-        }
-
-        bits <<= 1;
-        bits += 1;
-        bitsLength += 1;
-
-        if (bitsLength == 8) {
-            onByte(bits);
+            default: {
+                break;
+            }
         }
     }
-}
 
-void WireReader::onLo(MicroBitEvent event) {
-    if (state == FIRST) {
-        return;
-    }
-
-    uint64_t ticks = (event.timestamp / 1000) / TICK_RATE;
-
-    for (uint64_t i = 0; i < ticks; i++) {
-        if (ignoreBits > 0) {
-            ignoreBits = 0;
-            state = FIRST;
+    void WireReader::onHi(MicroBitEvent event) {
+        if (state == FIRST) {
+            state = READ_LENGTH;
             return;
         }
 
-        bits <<= 1;
-        bitsLength += 1;
+        uint64_t ticks = (event.timestamp / 1000) / MORSE_CODE_TICK_RATE;
 
-        if (bitsLength == 8) {
-            onByte(bits);
+        for (uint64_t i = 0; i < ticks; i++) {
+            if (ignoreBits > 0) {
+                ignoreBits--;
+                continue;
+            }
+
+            bits <<= 1;
+            bits += 1;
+            bitsLength += 1;
+
+            if (bitsLength == 8) {
+                onByte(bits);
+            }
         }
     }
-}
 
-std::vector<uint8_t> WireReader::readAll(int length) {
-    std::vector<uint8_t> target;
-
-    while (true) {
-        while (bytes.size() > 0 && length > 0) {
-            const uint8_t byte = bytes.front();
-            bytes.pop();
-            target.push_back(byte);
-            length -= 1;
+    void WireReader::onLo(MicroBitEvent event) {
+        if (state == FIRST) {
+            return;
         }
 
-        if (length <= 0) {
-            return target;
-        }
+        uint64_t ticks = (event.timestamp / 1000) / MORSE_CODE_TICK_RATE;
 
-        microBit->sleep(TICK_RATE);
+        for (uint64_t i = 0; i < ticks; i++) {
+            if (ignoreBits > 0) {
+                ignoreBits = 0;
+                state = FIRST;
+                return;
+            }
+
+            bits <<= 1;
+            bitsLength += 1;
+
+            if (bitsLength == 8) {
+                onByte(bits);
+            }
+        }
     }
-}
 
-short WireReader::readShort() {
-    auto bytes = readAll(2);
-    return (bytes[0] << 4) + bytes[1];
-}
+    std::vector<uint8_t> WireReader::readAll(int length) {
+        std::vector<uint8_t> target;
 
-void WireReader::listen(void (*handler)(std::vector<uint8_t>)) {
-    pin->setDigitalValue(1);
-    microBit->sleep(500);
-    pin->setDigitalValue(0);
+        while (true) {
+            while (bytes.size() > 0 && length > 0) {
+                const uint8_t byte = bytes.front();
+                bytes.pop();
+                target.push_back(byte);
+                length -= 1;
+            }
 
-    pin->eventOn(MICROBIT_PIN_EVENT_ON_PULSE);
-    microBit->messageBus.listen(MICROBIT_ID_IO_P2, MICROBIT_PIN_EVT_PULSE_HI, this, &WireReader::onHi);
-    microBit->messageBus.listen(MICROBIT_ID_IO_P2, MICROBIT_PIN_EVT_PULSE_LO, this, &WireReader::onLo);
-    listening = true;
+            if (length <= 0) {
+                return target;
+            }
 
-    while (listening) {
-        short packet_length = readShort();
-        vector<uint8_t> payload = readAll(packet_length);
-        handler(payload);
-        microBit->sleep(TICK_RATE);
+            microBit->sleep(MORSE_CODE_TICK_RATE);
+        }
+    }
+
+    short WireReader::readShort() {
+        auto bytes = readAll(2);
+        return (bytes[0] << 4) + bytes[1];
     }
 }

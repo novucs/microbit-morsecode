@@ -6,12 +6,16 @@ MICROBIT_PATH = /run/media/billy/MICROBIT
 
 SOURCE_FILES += \
     source/main.cpp \
+    source/MorseCode.cpp \
+    source/MorseCode.h \
+    source/SpeckCipher.cpp \
+    source/SpeckCipher.h \
     source/WireReader.cpp \
     source/WireReader.h \
     source/WireWriter.cpp \
     source/WireWriter.h
 
-OUTPUT_FILE = build/bbc-microbit-classic-gcc/source/microbit-platformer-combined.hex
+OUTPUT_FILE = build/bbc-microbit-classic-gcc/source/microbit-morsecode-combined.hex
 
 run: ${OUTPUT_FILE}
 	cp ${OUTPUT_FILE} ${MICROBIT_PATH}
