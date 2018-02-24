@@ -149,6 +149,11 @@ namespace morse_code {
     }
 
     void MorseCode::onButtonABClick(MicroBitEvent) {
+        // Do nothing if writing.
+        if (writing) {
+            return;
+        }
+
         // Clear the current message, to avoid duplicate input.
         MorseCode::message.clear();
 
@@ -164,6 +169,11 @@ namespace morse_code {
     }
 
     void MorseCode::onShake(MicroBitEvent) {
+        // Do nothing if writing.
+        if (writing) {
+            return;
+        }
+
         // Clear the current message, to avoid duplicate input.
         MorseCode::message.clear();
 
