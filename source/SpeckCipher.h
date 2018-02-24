@@ -59,7 +59,7 @@ namespace morse_code {
          * @param plainText the plain text to encrypt.
          * @return the cipher text.
          */
-        std::vector<uint8_t> encrypt(std::vector<uint8_t> plainText);
+        std::vector<uint8_t> encrypt(const std::vector<uint8_t> &plainText);
 
         /**
          * Decrypts a message using Speck Cipher with Cipher Block Chaining (CBC).
@@ -67,7 +67,7 @@ namespace morse_code {
          * @param cipherText the cipher text to decrypt.
          * @return the plain text.
          */
-        std::vector<uint8_t> decrypt(std::vector<uint8_t> cipherText);
+        std::vector<uint8_t> decrypt(const std::vector<uint8_t> &cipherText);
 
     };
 }

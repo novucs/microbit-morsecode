@@ -59,7 +59,7 @@ namespace morse_code {
         initializationVectorY = y;
     }
 
-    std::vector<uint8_t> SpeckCipher::encrypt(std::vector<uint8_t> plainText) {
+    std::vector<uint8_t> SpeckCipher::encrypt(const std::vector<uint8_t> &plainText) {
         // Copy the plain text into a buffer with room for padding.
         auto padding = static_cast<uint8_t>(4 - (plainText.size() % 4) & 3);
         size_t bufferSize = plainText.size() + padding;
@@ -84,7 +84,7 @@ namespace morse_code {
         return cipherText;
     }
 
-    std::vector<uint8_t> SpeckCipher::decrypt(std::vector<uint8_t> cipherText) {
+    std::vector<uint8_t> SpeckCipher::decrypt(const std::vector<uint8_t> &cipherText) {
         // Copy the cipher text into a buffer.
         uint8_t buffer[cipherText.size()];
         std::memcpy(&buffer, cipherText.data(), cipherText.size() * sizeof(uint8_t));

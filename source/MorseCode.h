@@ -29,6 +29,30 @@ namespace morse_code {
                                           0, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0};
 
+    // Bitmap images that display happy and sad emojis on the micro:bit LED
+    // matrix. Displayed when the user sends them.
+    static const uint8_t HAPPY_BITMAP[] = {0, 1, 0, 1, 0,
+                                           0, 1, 0, 1, 0,
+                                           0, 0, 0, 0, 0,
+                                           1, 0, 0, 0, 1,
+                                           0, 1, 1, 1, 0};
+
+    static const uint8_t SAD_BITMAP[] = {0, 1, 0, 1, 0,
+                                         0, 1, 0, 1, 0,
+                                         0, 0, 0, 0, 0,
+                                         0, 1, 1, 1, 0,
+                                         1, 0, 0, 0, 1};
+
+    /**
+     * Used as the first byte of a packet, lets the program know what type of
+     * packet is being sent.
+     */
+    enum PacketType {
+        MESSAGE,    // Displays the sent message.
+        HAPPY,      // Displays a happy face.
+        SAD         // Displays a sad face.
+    };
+
     /**
      * The main morse code manager. Holds and manages the current program state.
      * All morse code may be input by the user by tapping the A button. The
@@ -37,10 +61,12 @@ namespace morse_code {
      */
     class MorseCode {
     private:
-        // Dot and dash images to be pasted to the LED matrix, built using the
-        // bitmaps defined above.
+        // Dot, dash, happy and sad images to be pasted to the LED matrix,
+        // built using the bitmaps defined above.
         const MicroBitImage *dot = new MicroBitImage(5, 5, DOT_BITMAP);
         const MicroBitImage *dash = new MicroBitImage(5, 5, DASH_BITMAP);
+        const MicroBitImage *happy = new MicroBitImage(5, 5, HAPPY_BITMAP);
+        const MicroBitImage *sad = new MicroBitImage(5, 5, SAD_BITMAP);
 
         // The micro:bit instance, used for interacting with the hardware.
         MicroBit *microBit = new MicroBit();
@@ -90,6 +116,13 @@ namespace morse_code {
         void addBuffer();
 
         /**
+         * Encrypts and sends a packet.
+         *
+         * @param plainTextPacket the packet to send.
+         */
+        void sendPacket(const std::vector<uint8_t> &plainTextPacket);
+
+        /**
          * Handles when button A is released. Used for inputting morse code.
          */
         void onButtonAUp(MicroBitEvent);
@@ -104,14 +137,24 @@ namespace morse_code {
          */
         void onButtonBClick(MicroBitEvent);
 
+        /**
+         * Handles when buttons A and B are both clicked. Used for sending a happy face.
+         */
+        void onButtonABClick(MicroBitEvent);
+
+        /**
+         * Handles when the micro:bit has been shook. Used for sending a sad face.
+         */
+        void onShake(MicroBitEvent);
+
     public:
 
         /**
          * Handles when a packet is received over GPIO.
          *
-         * @param encrypted the encrypted message.
+         * @param encryptedPacket the encrypted message.
          */
-        void onPacket(std::vector<uint8_t> encrypted);
+        void onPacket(std::vector<uint8_t> encryptedPacket);
 
         /**
          * Initialises and runs the program.

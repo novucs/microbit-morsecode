@@ -88,6 +88,13 @@ namespace morse_code {
         clicked = false;
     }
 
+    void MorseCode::sendPacket(const std::vector<uint8_t> &plainTextPacket) {
+        // Encrypt and send the message.
+        writing = true;
+        writer->write(cipher->encrypt(plainTextPacket));
+        writing = false;
+    }
+
     void MorseCode::onButtonAUp(MicroBitEvent) {
         // Do nothing if writing or button was not clicked (prevents concurrent
         // buffer modification).
@@ -131,29 +138,76 @@ namespace morse_code {
 
         // Copy and clear the message.
         std::vector<uint8_t> message;
-        message = MorseCode::message;
+        message.push_back(MESSAGE);
+        message.insert(message.end(), MorseCode::message.begin(), MorseCode::message.end());
         MorseCode::message.clear();
-
-        // Encrypt and send the message.
-        writing = true;
-        writer->write(cipher->encrypt(message));
-        writing = false;
+        sendPacket(message);
 
         // Print the message to screen.
-        ManagedString text((char *) message.data(), (uint16_t) message.size());
+        ManagedString text((char *) (message.data() + 1), (uint16_t) (message.size() - 1));
         microBit->display.scroll(text);
     }
 
-    void MorseCode::onPacket(std::vector<uint8_t> encrypted) {
+    void MorseCode::onButtonABClick(MicroBitEvent) {
+        // Clear the current message, to avoid duplicate input.
+        MorseCode::message.clear();
+
+        // Send a happy packet.
+        std::vector<uint8_t> message;
+        message.push_back(HAPPY);
+        sendPacket(message);
+
+        // Stop all current animation and display a happy face.
+        microBit->display.stopAnimation();
+        microBit->display.image.paste(*happy);
+        microBit->sleep(500);
+    }
+
+    void MorseCode::onShake(MicroBitEvent) {
+        // Clear the current message, to avoid duplicate input.
+        MorseCode::message.clear();
+
+        // Send a sad packet.
+        std::vector<uint8_t> message;
+        message.push_back(SAD);
+        sendPacket(message);
+
+        // Stop all current animation and display a sad face.
+        microBit->display.stopAnimation();
+        microBit->display.image.paste(*sad);
+        microBit->sleep(500);
+    }
+
+    void MorseCode::onPacket(std::vector<uint8_t> encryptedPacket) {
         // Decrypt the message.
-        std::vector<uint8_t> packet = cipher->decrypt(encrypted);
+        std::vector<uint8_t> packet = cipher->decrypt(encryptedPacket);
+
+        // Get the packet type.
+        PacketType packetType = (PacketType) packet.at(0);
 
         // Stop all current animation.
         microBit->display.stopAnimation();
 
-        // Print the message to screen.
-        ManagedString message((char *) packet.data(), (uint16_t) packet.size());
-        microBit->display.scroll(message);
+        switch (packetType) {
+            case MESSAGE: {
+                // Print the message to screen.
+                ManagedString message((char *) packet.data() + 1, (uint16_t) (packet.size() - 1));
+                microBit->display.scroll(message);
+                break;
+            }
+            case HAPPY: {
+                // Print a happy face.
+                microBit->display.image.paste(*happy);
+                microBit->sleep(500);
+                break;
+            }
+            case SAD: {
+                // Print a sad face.
+                microBit->display.image.paste(*sad);
+                microBit->sleep(500);
+                break;
+            }
+        }
     }
 
     void MorseCode::run() {
@@ -165,6 +219,8 @@ namespace morse_code {
         microBit->messageBus.listen(MICROBIT_ID_BUTTON_A, MICROBIT_BUTTON_EVT_DOWN, this, &MorseCode::onButtonADown);
         microBit->messageBus.listen(MICROBIT_ID_BUTTON_A, MICROBIT_BUTTON_EVT_UP, this, &MorseCode::onButtonAUp);
         microBit->messageBus.listen(MICROBIT_ID_BUTTON_B, MICROBIT_BUTTON_EVT_CLICK, this, &MorseCode::onButtonBClick);
+        microBit->messageBus.listen(MICROBIT_ID_BUTTON_AB, MICROBIT_BUTTON_EVT_CLICK, this, &MorseCode::onButtonABClick);
+        microBit->messageBus.listen(MICROBIT_ID_GESTURE, MICROBIT_ACCELEROMETER_EVT_SHAKE, this, &MorseCode::onShake);
 
         // Start the button timer.
         buttonTimer.start();
