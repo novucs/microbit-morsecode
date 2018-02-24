@@ -21,9 +21,6 @@ public:
 
     void write(std::vector<uint8_t> packet);
 
-    void wait();
-
-    void ping();
 };
 
 #endif // MORSECODE_WIREWRITER_H

@@ -25,27 +25,12 @@ void WireWriter::writeShort(short value) {
     writeByte((uint8_t) (value & 0xFF));
 }
 
-void WireWriter::wait() {
-    while (pin->getDigitalValue() == 0) {
-        microBit->sleep(TICK_RATE);
-    }
-    while (pin->getDigitalValue() == 1) {
-        microBit->sleep(TICK_RATE);
-    }
-}
-
 void WireWriter::write(std::vector<uint8_t> packet) {
     writeBit(true);
     writeShort((short) packet.size());
     for (uint8_t byte : packet) {
         writeByte(byte);
     }
-    writeBit(true);
-    writeBit(false);
-}
-
-void WireWriter::ping() {
-    writeBit(false);
     writeBit(true);
     writeBit(false);
 }

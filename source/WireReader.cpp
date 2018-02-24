@@ -43,7 +43,7 @@ void WireReader::onHi(MicroBitEvent event) {
 
     uint64_t ticks = (event.timestamp / 1000) / TICK_RATE;
 
-    for (int i = 0; i < ticks; i++) {
+    for (uint64_t i = 0; i < ticks; i++) {
         if (ignoreBits > 0) {
             ignoreBits--;
             continue;
@@ -66,7 +66,7 @@ void WireReader::onLo(MicroBitEvent event) {
 
     uint64_t ticks = (event.timestamp / 1000) / TICK_RATE;
 
-    for (int i = 0; i < ticks; i++) {
+    for (uint64_t i = 0; i < ticks; i++) {
         if (ignoreBits > 0) {
             ignoreBits = 0;
             state = FIRST;
@@ -112,16 +112,13 @@ void WireReader::listen(void (*handler)(std::vector<uint8_t>)) {
     pin->setDigitalValue(0);
 
     pin->eventOn(MICROBIT_PIN_EVENT_ON_PULSE);
-    microBit->messageBus.listen(MICROBIT_ID_IO_P2, MICROBIT_PIN_EVT_PULSE_HI, this, &WireReader::onHi,
-                                MESSAGE_BUS_LISTENER_IMMEDIATE);
-    microBit->messageBus.listen(MICROBIT_ID_IO_P2, MICROBIT_PIN_EVT_PULSE_LO, this, &WireReader::onLo,
-                                MESSAGE_BUS_LISTENER_IMMEDIATE);
-
+    microBit->messageBus.listen(MICROBIT_ID_IO_P2, MICROBIT_PIN_EVT_PULSE_HI, this, &WireReader::onHi);
+    microBit->messageBus.listen(MICROBIT_ID_IO_P2, MICROBIT_PIN_EVT_PULSE_LO, this, &WireReader::onLo);
     listening = true;
 
     while (listening) {
         short packet_length = readShort();
-        std::vector<uint8_t> payload = readAll(packet_length);
+        vector<uint8_t> payload = readAll(packet_length);
         handler(payload);
         microBit->sleep(TICK_RATE);
     }
