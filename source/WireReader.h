@@ -69,7 +69,7 @@ namespace morse_code {
          *
          * @return the next read in short.
          */
-        short readShort();
+        uint16_t readShort();
 
         /**
          * Handles when the GPIO signal is set to LO.
@@ -120,8 +120,8 @@ namespace morse_code {
             listening = true;
 
             while (listening) {
-                short packet_length = readShort();
-                vector<uint8_t> payload = readAll(packet_length);
+                uint16_t packetLength = readShort();
+                vector<uint8_t> payload = readAll(packetLength);
                 (object->*handler)(payload);
                 microBit->sleep(MORSE_CODE_TICK_RATE);
             }

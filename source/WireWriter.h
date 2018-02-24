@@ -37,7 +37,7 @@ namespace morse_code {
          *
          * @param value the short to write.
          */
-        void writeShort(short value);
+        void writeShort(uint16_t value);
 
     public:
 
