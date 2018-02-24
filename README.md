@@ -100,8 +100,8 @@ much slower than they already are. Therefore I decided to create a
 packet sending framework to add good encryption without sacrificing
 precious bandwidth. Packets are identified through the power-efficient
 HI and LO GPIO events provided by the micro:bit DAL API. When parsing
-these events, each bit is represented by a HI or LO signal for `35
-milliseconds`. The program attempts to identify the following packet
+these events, each bit is represented by a HI or LO signal for
+`35 milliseconds`. The program attempts to identify the following packet
 structure:
 
 ```
