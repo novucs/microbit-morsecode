@@ -156,6 +156,10 @@ initialization vector (IV). Each block processed then updates the IV.
 More information can be found on this [here](
 https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_Block_Chaining_(CBC)).
 
+Buffers that are not divisible by the cipher block size are padded using
+PKCS7. More information can be found in this [here](
+https://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS7).
+
 The morse code messaging protocol built on top of this is very simple.
 The first byte represents the packet type, which is one of the
 following:
