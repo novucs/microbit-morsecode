@@ -171,3 +171,19 @@ following:
 Message packet types are then followed by a sequence of characters that
 are displayed to the screen. Happy and sad packets contain no extra
 information as they're only used to tell a device to display an emoji.
+
+### State Diagram
+
+Displays how messages are read in using GPIOs via a UML state diagram,
+sticking the same symbols and conventions as shown in Ben's lecture.
+
+![state diagram](./state-diagram.jpg)
+
+
+### Flowchart
+
+Due to an error on my part, I ended up creating a flowchart before
+realising it should've been a state diagram. So here it is anyway,
+if whoever marks this is interested.
+
+![flowchart](./flowchart.jpg)
