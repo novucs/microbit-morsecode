@@ -98,9 +98,9 @@ it for sending data as it is not secure. It is possible to encrypt the
 message and encode it in morse code, but the transfer speeds would be
 much slower than they already are. Therefore I decided to create a
 packet sending framework to add good encryption without sacrificing
-precious bandwidth. Packets are identified through the power-efficient
+precious bandwidth. Packets are identified through the power efficient
 HI and LO GPIO events provided by the micro:bit DAL API. When parsing
-these events, each bit is represented by a HI or LO signal for
+these events, each bit is represented by a HI or LO signal that lasts
 `35 milliseconds`. The program attempts to identify the following packet
 structure:
 
@@ -116,7 +116,7 @@ PAYLOAD
 - Maximum size is 65535 bytes. The micro:bit will run out of memory
   before being able to read it all in (micro:bits have 16KB RAM). So
   this should be plenty of data to send.
-- All this conetent should be encrypted using SpeckCipher.
+- All this content should be encrypted using SpeckCipher.
 
 END
 - HI, 1 bit
@@ -143,8 +143,8 @@ negatives. The two huge positives that swayed me to do this were:
    https://csrc.nist.gov/csrc/media/events/lightweight-cryptography-workshop-2015/documents/papers/session1-shors-paper.pdf)
 
 It is possible to support larger block sizes for better encryption at
-the cost of bandwidth by simply toggling a couple of cipher hyper-
-parameters. I've stuck with a block size of 32bit to ensure maximum
+the cost of bandwidth by simply toggling a couple of cipher
+hyperparameters. I've stuck with a block size of 32bit to ensure maximum
 responsiveness.
 
 SpeckCipher or AES alone are not secure for this protocol, as we will be
